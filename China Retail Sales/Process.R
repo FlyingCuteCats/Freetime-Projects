@@ -1,10 +1,10 @@
 library(tidyverse)
 library(lubridate)
 
-cngen <- read_csv("/Users/Eliot 1/Library/Mobile Documents/com~apple~CloudDocs/Data Analysis Projects/Retail Sales/CN General Catalogues.csv")
-usret <- read_csv("/Users/Eliot 1/Library/Mobile Documents/com~apple~CloudDocs/Data Analysis Projects/Retail Sales/US DataSeries.csv")
-cncpi <- read_csv("/Users/Eliot 1/Library/Mobile Documents/com~apple~CloudDocs/Data Analysis Projects/Retail Sales/CN CPI index.csv")
-cnspe <- read_csv("/Users/Eliot 1/Library/Mobile Documents/com~apple~CloudDocs/Data Analysis Projects/Retail Sales/CN Specific Catalogues.csv")
+cngen <- read_csv("~/CN General Catalogues.csv")
+usret <- read_csv("~/US DataSeries.csv")
+cncpi <- read_csv("~/CN CPI index.csv")
+cnspe <- read_csv("~/CN Specific Catalogues.csv")
 
 
 # ggplot(usret, aes(
