@@ -31,91 +31,34 @@ ggplot(prices, aes(t, US.10y.yield - CN.10y.yield, colour = factor(year(t)))) +
 
 # Gold
 
-prices |> 
-  filter(year(Date) == 2024) |> 
-  ggplot(aes(x = US.10y.yield - CN.10y.yield, 
-           y = Gold, 
-           colour = factor(month(Date)))
-) + 
-  geom_smooth() + 
-  geom_point(alpha = 0.5) + 
-  ggtitle("Gold Price in Year 2024") + 
-  labs(x = "US-CN 10y spread", 
-       colour = "Month")
+plot_gold_price <- function(data, year, by_month = FALSE) {  
+  # first pick out the year  
+  filtered_data <- data |> 
+    filter(year(Date) == year)
+  
+  # then generate the plot  
+  p <- filtered_data |> 
+    ggplot(aes(x = US.10y.yield - CN.10y.yield, y = Gold)) +
+    geom_smooth() +
+    geom_point(alpha = 0.5) +
+    ggtitle(paste("Gold Price in Year", year)) +
+    labs(x = "US-CN 10y spread")
+  
+  # decide which variant to plot   
+  if (!by_month) {
+    p <- p + aes(colour = factor(month(Date))) +
+      labs(colour = "Month")
+  } else {
+    p <- p + aes(colour = day(Date)) +
+      facet_wrap(~month(Date)) +
+      labs(colour = "Day")
+  }  
+  print(p)
+}
 
-prices |> 
-  filter(year(Date) == 2024) |> 
-  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = Gold, colour = day(Date))) + 
-  geom_smooth() + geom_point(alpha = 0.5) + 
-  facet_wrap(~month(Date)) + 
-  ggtitle("Gold Price in Year 2024 by month") + 
-  labs(x = "US-CN 10y spread", 
-       colour = "Month")
-
-prices |> 
-  filter(year(Date) == 2023) |> 
-  ggplot(aes(x = US.10y.yield - CN.10y.yield, 
-           y = Gold, 
-           colour = factor(month(Date)))
-       ) + 
-  geom_smooth() + 
-  geom_point(alpha = 0.5) + 
-  ggtitle("Gold Price in Year 2023") + 
-  labs(x = "US-CN 10y spread", 
-       colour = "Month")
-
-prices |> 
-  filter(year(Date) == 2023) |> 
-  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = Gold, colour = day(Date))) + 
-  geom_smooth() + geom_point(alpha = 0.5) + 
-  facet_wrap(~month(Date)) + 
-  ggtitle("Gold Price in Year 2023 by month") + 
-  labs(x = "US-CN 10y spread", 
-       colour = "Month")
-
-prices |> 
-  filter(year(Date) == 2022) |> 
-  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = Gold, colour = factor(month(Date)))) + 
-  geom_smooth() + geom_point(alpha = 0.5) + 
-  ggtitle("Gold Price in Year 2022") + 
-  labs(x = "US-CN 10y spread", 
-       colour = "Month")
-
-prices |> 
-  filter(year(Date) == 2022) |> 
-  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = Gold, colour = day(Date))) + 
-  geom_smooth() + geom_point(alpha = 0.5) + 
-  facet_wrap(~month(Date)) + 
-  ggtitle("Gold Price in Year 2022 by month") + 
-  labs(x = "US-CN 10y spread", 
-       colour = "Month")
-
-# US-DE spread finally gets pumped
-
-prices |> 
-  filter(year(Date) == 2024) |> 
-  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = US.10y.yield - DE.10y.yield, colour = factor(month(Date)))) + 
-  geom_smooth() + geom_point(alpha = 0.5) + 
-  ggtitle("2024 whole year")
-
-prices |> 
-  filter(year(Date) == 2024) |> 
-  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = US.10y.yield - DE.10y.yield, colour = day(Date))) + 
-  geom_smooth() + geom_point(alpha = 0.5) + 
-  facet_wrap(~month(Date)) + 
-  ggtitle("2024 whole year by month", 
-          colour = "Month")
-
-prices |> 
-  filter(year(Date) == 2023) |> 
-  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = US.10y.yield - DE.10y.yield, colour = factor(month(Date)))) + 
-  geom_smooth() + geom_point(alpha = 0.5) + 
-  ggtitle("2023 whole year")
-
-prices |> 
-  filter(year(Date) == 2023) |> 
-  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = US.10y.yield - DE.10y.yield, colour = day(Date))) + 
-  geom_smooth() + geom_point(alpha = 0.5) + 
-  facet_wrap(~month(Date)) + 
-  ggtitle("2023 whole year by month", 
-          colour = "Month")
+plot_gold_price(prices, 2024, by_month = F)
+plot_gold_price(prices, 2024, by_month = T)
+plot_gold_price(prices, 2023, by_month = F)
+plot_gold_price(prices, 2023, by_month = T)
+plot_gold_price(prices, 2022, by_month = F)
+plot_gold_price(prices, 2022, by_month = T)
