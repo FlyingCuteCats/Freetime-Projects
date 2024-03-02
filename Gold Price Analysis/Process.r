@@ -1,15 +1,9 @@
-prices <- read.csv("~/PriceSeries.csv")
-
 library(tidyverse)
 library(lubridate)
-# library(gridExtra)
+library(here)
 
-# divide by year
-t <- as.Date(prices$Date)
+prices <- read.csv(here("PriceSeries.csv"))
 prices$Date <- as.Date(prices$Date)
-p2024 <- subset(prices, year(Date) == 2024)
-p2023 <- subset(prices, year(Date) == 2023)
-p2022 <- subset(prices, year(Date) == 2022)
 
 # Randomness Test
 
@@ -35,69 +29,85 @@ for (i in 1:6) {
 ggplot(prices, aes(t, US.10y.yield - CN.10y.yield, colour = factor(year(t)))) + 
   geom_line()
 
-# Relevance btw Gold and US-CN yield spread by year and month
+# Gold
 
-ggplot(p2024, 
-       aes(x = US.10y.yield - CN.10y.yield, 
+prices |> 
+  filter(year(Date) == 2024) |> 
+  ggplot(aes(x = US.10y.yield - CN.10y.yield, 
            y = Gold, 
            colour = factor(month(Date)))
 ) + 
   geom_smooth() + 
   geom_point(alpha = 0.5) + 
-  ggtitle("2024 whole year")
+  ggtitle("Gold Price in Year 2024") + 
+  labs(x = "US-CN 10y spread")
 
-ggplot(p2024, 
-       aes(x = US.10y.yield - CN.10y.yield, y = Gold, colour = day(Date))) + 
+prices |> 
+  filter(year(Date) == 2024) |> 
+  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = Gold, colour = day(Date))) + 
   geom_smooth() + geom_point(alpha = 0.5) + 
   facet_wrap(~month(Date)) + 
-  ggtitle("2024 whole year by month")
+  ggtitle("Gold Price in Year 2024 by month") + 
+  labs(x = "US-CN 10y spread")
 
-ggplot(p2023, 
-       aes(x = US.10y.yield - CN.10y.yield, 
+prices |> 
+  filter(year(Date) == 2023) |> 
+  ggplot(aes(x = US.10y.yield - CN.10y.yield, 
            y = Gold, 
            colour = factor(month(Date)))
        ) + 
   geom_smooth() + 
   geom_point(alpha = 0.5) + 
+  ggtitle("Gold Price in Year 2023") + 
+  labs(x = "US-CN 10y spread")
+
+prices |> 
+  filter(year(Date) == 2023) |> 
+  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = Gold, colour = day(Date))) + 
+  geom_smooth() + geom_point(alpha = 0.5) + 
+  facet_wrap(~month(Date)) + 
+  ggtitle("Gold Price in Year 2023 by month") + 
+  labs(x = "US-CN 10y spread")
+
+prices |> 
+  filter(year(Date) == 2022) |> 
+  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = Gold, colour = factor(month(Date)))) + 
+  geom_smooth() + geom_point(alpha = 0.5) + 
+  ggtitle("Gold Price in Year 2022") + 
+  labs(x = "US-CN 10y spread")
+
+prices |> 
+  filter(year(Date) == 2022) |> 
+  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = Gold, colour = day(Date))) + 
+  geom_smooth() + geom_point(alpha = 0.5) + 
+  facet_wrap(~month(Date)) + 
+  ggtitle("Gold Price in Year 2022 by month") + 
+  labs(x = "US-CN 10y spread")
+
+# US-DE spread finally gets pumped
+
+prices |> 
+  filter(year(Date) == 2024) |> 
+  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = US.10y.yield - DE.10y.yield, colour = factor(month(Date)))) + 
+  geom_smooth() + geom_point(alpha = 0.5) + 
+  ggtitle("2024 whole year")
+
+prices |> 
+  filter(year(Date) == 2024) |> 
+  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = US.10y.yield - DE.10y.yield, colour = day(Date))) + 
+  geom_smooth() + geom_point(alpha = 0.5) + 
+  facet_wrap(~month(Date)) + 
+  ggtitle("2024 whole year by month")
+
+prices |> 
+  filter(year(Date) == 2023) |> 
+  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = US.10y.yield - DE.10y.yield, colour = factor(month(Date)))) + 
+  geom_smooth() + geom_point(alpha = 0.5) + 
   ggtitle("2023 whole year")
 
-ggplot(p2023, 
-       aes(x = US.10y.yield - CN.10y.yield, y = Gold, colour = day(Date))) + 
+prices |> 
+  filter(year(Date) == 2023) |> 
+  ggplot(aes(x = US.10y.yield - CN.10y.yield, y = US.10y.yield - DE.10y.yield, colour = day(Date))) + 
   geom_smooth() + geom_point(alpha = 0.5) + 
   facet_wrap(~month(Date)) + 
   ggtitle("2023 whole year by month")
-
-
-ggplot(p2022, aes(x = US.10y.yield - CN.10y.yield, y = Gold, colour = factor(month(Date)))) + 
-  geom_smooth() + geom_point(alpha = 0.5) + 
-  ggtitle("2022 whole year")
-ggplot(p2022, aes(x = US.10y.yield - CN.10y.yield, y = Gold, colour = day(Date))) + 
-  geom_smooth() + geom_point(alpha = 0.5) + 
-  facet_wrap(~month(Date)) + 
-  ggtitle("2022 whole year by month")
-
-# US-DE spread 
-ggplot(p2023, aes(x = US.10y.yield - CN.10y.yield, y = US.10y.yield - DE.10y.yield, colour = factor(month(Date)))) + 
-  geom_smooth() + geom_point(alpha = 0.5) + 
-  ggtitle("2023 whole year")
-ggplot(p2023, aes(x = US.10y.yield - CN.10y.yield, y = US.10y.yield - DE.10y.yield, colour = day(Date))) + 
-  geom_smooth() + geom_point(alpha = 0.5) + 
-  facet_wrap(~month(Date)) + 
-  ggtitle("2023 whole year by month")
-
-# How about US-DE spread and SPX? LOADS OF MESS, same as US-CN spread
-# ggplot(p2023, aes(x = US.10y.yield - DE.10y.yield, y = SPX, colour = factor(month(Date)))) + geom_smooth() + geom_point(alpha = 0.5) + ggtitle("2023 whole year")
-# ggplot(p2023, aes(x = US.10y.yield - DE.10y.yield, y = SPX, colour = day(Date))) + geom_smooth() + geom_point(alpha = 0.5) + facet_wrap(~month(Date)) + ggtitle("2023 whole year by month")
-# 
-# ggplot(p2022, aes(x = US.10y.yield - DE.10y.yield, y = SPX, colour = factor(month(Date)))) + geom_smooth() + geom_point(alpha = 0.5) + ggtitle("2022 whole year")
-# ggplot(p2022, aes(x = US.10y.yield - DE.10y.yield, y = SPX, colour = day(Date))) + geom_smooth() + geom_point(alpha = 0.5) + facet_wrap(~month(Date)) + ggtitle("2022 whole year by month")
-
-
-
-
-# backup code
-# ggplot(p2022, aes(x = US.10y.yield - CN.10y.yield, y = US.10y.yield - DE.10y.yield, colour = factor(month(Date)))) + geom_smooth() + geom_point(alpha = 0.5) + ggtitle("2022 whole year")
-# ggplot(p2022, aes(x = US.10y.yield - CN.10y.yield, y = US.10y.yield - DE.10y.yield, colour = day(Date))) + geom_smooth() + geom_point(alpha = 0.5) + facet_wrap(~month(Date)) + ggtitle("2022 whole year by month")
-
-#ggplot(prices, aes(x = DXY, y = Gold)) + geom_smooth() + geom_point() + facet_wrap(~month(Date))
-#ggplot(prices, aes(x = US.10y.yield - DE.10y.yield, y = Gold)) + geom_smooth() + geom_point() + facet_wrap(~month(Date))
