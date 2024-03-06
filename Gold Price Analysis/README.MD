@@ -1,4 +1,4 @@
-In THE last 2 years the direction of gold price is in reverse with the spread of US and CN 10y yield. A few exception happened in the first half of '22 and October '23.
+In the last 2 years the direction of gold price is in reverse with the spread of US and CN 10y yield. A few exception happened in the first half of '22 and October '23.
 
 The former is due to the surprised attack from Russia to Ukraine, and it led to a rise of risk aversion altogether. When the Gold price reverted to its January level about 2 months later, the spread appeared to hesitate before the hope of China ending zero-Covid policy diminished after May.
 
