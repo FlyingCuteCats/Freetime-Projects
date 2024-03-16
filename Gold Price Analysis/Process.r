@@ -26,7 +26,7 @@ for (i in 1:6) {
 
 # US-CN yield series
 
-ggplot(prices, aes(t, US.10y.yield - CN.10y.yield, colour = factor(year(t)))) + 
+ggplot(prices, aes(Date, US.10y.yield - CN.10y.yield, colour = factor(year(Date)))) + 
   geom_line()
 
 # Gold
