@@ -1,16 +1,53 @@
 library(tidyverse)
 library(lubridate)
+library(here)
 
-cngen <- read_csv("~/CN General Catalogues.csv")
-cncpi <- read_csv("~/CN CPI index.csv")
-cnspe <- read_csv("~/CN Specific Catalogues.csv")
+cngen <- read.csv(here("CN General Catalogues.csv"))
+cncpi <- read.csv(here("CN CPI index.csv"))
+cnspe <- read.csv(here("CN Specific Catalogues.csv"))
 
 
 cngen$Date <- as.Date(cngen$Date)
 cncpi$Date <- as.Date(cncpi$Date)
-cngen |> arrange(Date) -> cngen
+cngen |> 
+  arrange(Date) -> cngen
 
-#CPI-adjusted Retail Sales for all years and after 2015
+cngen <- cngen |> 
+  rename("Retail Sales (CNY 100M)" = "Retail.Sales..CNY.100M.", 
+         "Retail Sales Tot Per Annu (CNY 100M)" = "Retail.Sales.Tot.Per.Annu..CNY.100M.") 
+
+#####
+
+# Experiment on reproducing data of Jan and Feb
+
+genlunar <- cngen |>
+  filter(
+  month(Date) == 1 | month(Date) == 2,
+  is.na(`Retail Sales (CNY 100M)`) == T) |>
+  select(Date, `Retail Sales (CNY 100M)`, `Retail Sales Tot Per Annu (CNY 100M)`)
+
+# Solution 1: simply divide the retail sales by days of month
+days_in_first_two_months <- function(year) {
+  ifelse(leap_year(year), return(31+29),return(31+28))
+}
+
+genlunar <- genlunar |> 
+  fill(`Retail Sales Tot Per Annu (CNY 100M)`, 
+       .direction = "up") |> 
+  mutate(`Retail Sales (CNY 100M)` = 
+            `Retail Sales Tot Per Annu (CNY 100M)` * days_in_month(Date) / days_in_first_two_months(year(Date))) |> 
+  select(Date, `Retail Sales (CNY 100M)`)
+
+for(i in 1:nrow(genlunar)) {
+  cngen$`Retail Sales (CNY 100M)`[cngen$Date == genlunar$Date[i]] <- genlunar$`Retail Sales (CNY 100M)`[i]
+}
+
+# Solution 2: consider the days of Lunar New Year Holiday as weight
+# lunar <- read.csv(here("Lunar Year Start Date.csv"))
+
+#####
+
+# CPI-adjusted Retail Sales for all years and after 2015
 
 cnadj <- cngen |> 
   select(Date,`Retail Sales (CNY 100M)`) |> 
@@ -42,7 +79,7 @@ cnadj |> filter(year(Date) >= 2015) |>
   geom_smooth() + 
   ylab("Adjusted Retail Sales (CNY 100M)")
 
-#lag plots
+# lag plots
 
 series <- sapply(cngen[,2:45], function (x) x[!is.na(x)])
 
