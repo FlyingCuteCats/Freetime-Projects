@@ -10,9 +10,9 @@ prices$Date <- as.Date(prices$Date)
 series <- sapply(prices[,2:7], function (x) x[!is.na(x)])
 
 for (i in 1:6) {
-  lag.plot(series[[i]], lags = 20, 
+  lag.plot(series[[i]], set.lags = c(1, 10, 25, 50, 100, 200), 
            main = paste("Lag Plot of", names(series[i])), 
-           layout = c(4,5))
+           layout = c(2,3))
   par(mfcol = c(1,3))
   acf(series[[i]], lag.max = 200, 
       main = paste("ACF of", names(series[i])))
