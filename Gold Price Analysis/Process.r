@@ -1,6 +1,7 @@
 library(tidyverse)
 library(lubridate)
 library(here)
+library(zoo)
 
 prices <- read.csv(here("PriceSeries.csv"))
 prices$Date <- as.Date(prices$Date)
@@ -96,3 +97,15 @@ plot_gold_price_us(prices, 2023, by_month = F)
 plot_gold_price_us(prices, 2023, by_month = T)
 plot_gold_price_us(prices, 2022, by_month = F)
 plot_gold_price_us(prices, 2022, by_month = T)
+
+# decomposition of gold price
+
+goldts <- zoo(prices$Gold, order.by = prices$Date)
+#goldts <- na.spline(goldts)
+#goldts <- na.fill(goldts, 0)
+plot(goldts, ylab = "Gold Price", xlab = "Date")
+
+#startW <- as.numeric(strftime(head(prices$Date, 1), format = "%W"))
+#startD <- as.numeric(strftime(head(prices$Date, 1) + 1, format =" %w")) 
+#goldts <- ts(goldts, frequency = 5, c(startW, startD))
+
