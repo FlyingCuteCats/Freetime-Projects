@@ -79,6 +79,29 @@ cnadj |> filter(year(Date) >= 2015) |>
   geom_smooth() + 
   ylab("Adjusted Retail Sales (CNY 100M)")
 
+# decomposition
+
+# library(tidymodels)
+# library(tsibble)
+# library(fabletools)
+# library(fable)
+adj <- cnadj |> 
+  mutate(Retail_adj = `Retail Sales (CNY 100M)` / CPIIndex) |> 
+  select(Date, Retail_adj) |> 
+  mutate(Month = yearmonth(Date)) |> 
+  select(-Date) |> 
+  as_tsibble(index = Month) |> 
+  select(Month, Retail_adj)
+
+library(feasts)
+adj |> 
+  fill_gaps() |> 
+  gg_season(Retail_adj)
+
+dcmp <- adj %>% model(stl = STL(Retail_adj))
+components(dcmp) |> head
+
+
 # lag plots
 
 series <- sapply(cngen[,2:45], function (x) x[!is.na(x)])
@@ -126,3 +149,5 @@ ggplot(cngen2015on,
        aes(x = Date, y = `Retail Sales (CNY 100M)`)) + 
   geom_line() + 
   geom_hline(yintercept = 25000)
+
+
