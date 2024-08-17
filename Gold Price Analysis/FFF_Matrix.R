@@ -52,8 +52,34 @@ fff_2024 |>
 ## Say we need to compute the matrix for the target
 ## range of rate 500-525
 
-targetrange = "(500-525)"
-columnList = c("Date", targetrange, "MeetingName", "Meeting", "DaysDiff")
-fff_target <- fff_2024 |> 
-  select(all_of(columnList))
+matrix_table <- function(data, targetrange) {
+  columnList = c("Date", targetrange, "MeetingName", "Meeting", "DaysDiff")
+  fff_target <- data |> 
+    select(all_of(columnList))
+  
+  fff_matrix_3mo <- fff_target |> 
+    group_by(Date) |> 
+    filter(Meeting > Date) |> 
+    arrange(Date, Meeting) |> 
+    slice(1:3) |> 
+    summarise(Sentiment_3mon = sum(.data[[targetrange]] * as.numeric(DaysDiff))/sum(as.numeric(DaysDiff)))
+  
+  fff_matrix_8mo <- fff_target |> 
+    group_by(Date) |> 
+    filter(Meeting > Date) |> 
+    arrange(Date, Meeting) |> 
+    slice(1:8) |> 
+    summarise(Sentiment_8mon = sum(.data[[targetrange]] * as.numeric(DaysDiff))/sum(as.numeric(DaysDiff)))
+  
+  fff_matrix <- merge(fff_matrix_3mo, fff_matrix_8mo, by = "Date", all = T)
+  fff_matrix <- fff_matrix |> mutate(TargetRange = targetrange)
+  return(fff_matrix)
+}
 
+matrix_list <- rbind(matrix_table(fff_2024, "(500-525)"), 
+                     matrix_table(fff_2024, "(475-500)"))
+
+matrix_list |> ggplot(aes(x = Date)) + 
+  facet_wrap(~TargetRange) + 
+  geom_line(aes(y = Sentiment_3mon, colour = "Sentiment (ST)")) + 
+  geom_line(aes(y = Sentiment_8mon, colour = "Sentiment (LT)"))
