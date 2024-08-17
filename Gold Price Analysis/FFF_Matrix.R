@@ -34,16 +34,16 @@ fff_2024 <- combined_data |>
 fff_2024 |> 
   ggplot(aes(x=Date, y=`(500-525)`)) + 
   geom_line() + 
-  labs(title = "25 bps reduction") + 
+  labs(title = "25 bps reduction probability by meeting") + 
   facet_wrap(~Meeting) + 
-  geom_hline(yintercept = 0.5, colour = "grey")
+  geom_hline(yintercept = 0.5, linetype = "dashed", colour = "grey")
 
 fff_2024 |> 
   ggplot(aes(x=Date, y=`(475-500)`)) + 
   geom_line() + 
-  labs(title = "50 bps reduction") + 
+  labs(title = "50 bps reduction probability by meeting") + 
   facet_wrap(~Meeting) + 
-  geom_hline(yintercept = 0.5, colour = "grey")
+  geom_hline(yintercept = 0.5, linetype = "dashed", colour = "grey")
 
 # grid.arrange(p1, p2, nrow = 2)
 
@@ -76,10 +76,14 @@ matrix_table <- function(data, targetrange) {
   return(fff_matrix)
 }
 
-matrix_list <- rbind(matrix_table(fff_2024, "(500-525)"), 
+matrix_list <- rbind(matrix_table(fff_2024, "(525-550)"), 
+                     matrix_table(fff_2024, "(500-525)"), 
                      matrix_table(fff_2024, "(475-500)"))
 
 matrix_list |> ggplot(aes(x = Date)) + 
   facet_wrap(~TargetRange) + 
   geom_line(aes(y = Sentiment_3mon, colour = "Sentiment (ST)")) + 
-  geom_line(aes(y = Sentiment_8mon, colour = "Sentiment (LT)"))
+  geom_line(aes(y = Sentiment_8mon, colour = "Sentiment (LT)")) + 
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey") + 
+  labs(title = "Sentiment for Various FFF rates", 
+       y = "Sentiment")
