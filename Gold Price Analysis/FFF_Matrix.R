@@ -90,3 +90,24 @@ matrix_list |> ggplot(aes(x = Date)) +
   geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey") + 
   labs(title = "Long Term (8 month) Sentiment for Various FFF rates", 
        y = "Sentiment")
+
+## this is a test of dominating target range with sentiment as weight
+
+matrix_list_dom <- matrix_list |> 
+  group_by(Date) |> 
+  summarise(Sentiment_3mon_dom=max(Sentiment_3mon)*c(5.375,5.125,4.875)[which.max(Sentiment_3mon)], 
+            Sentiment_8mon_dom=max(Sentiment_8mon)*c(5.375,5.125,4.875)[which.max(Sentiment_8mon)])
+
+matrix_list_dom |> ggplot(aes(x=Date)) + 
+  geom_line(aes(y=Sentiment_3mon_dom, colour="Sentiment_3mon_dom")) + 
+  geom_line(aes(y=Sentiment_8mon_dom, colour="Sentiment_8mon_dom"))
+
+matrix_list_dom |> ggplot(aes(x=Date, y=1-1/(Sentiment_3mon_dom/Sentiment_8mon_dom))) + 
+  geom_line()
+
+prices |> 
+  merge(matrix_list_dom, by="Date") |> 
+  ggplot(aes(x=US.10y.yield, y=Sentiment_8mon_dom)) + 
+  geom_smooth() + 
+  geom_point(alpha=0.5) + 
+  aes(colour = factor(month(Date)))
