@@ -6,9 +6,9 @@ library(gridExtra)
 
 ### Wrangling
 
-fff_dates <- read.csv(here("FFF_Matrix/FedMeeting_Date.csv"))
-fff_dates$Date <- as.Date(fff_dates$Date)
-fff_dates |> mutate(Meeting = paste(month.name[month(Date)], year(Date)))
+# fff_dates <- read.csv(here("FFF_Matrix/FedMeeting_Date.csv"))
+# fff_dates$Date <- as.Date(fff_dates$Date)
+# fff_dates |> mutate(Meeting = paste(month.name[month(Date)], year(Date)))
 
 matrix_path <- here("FFF_Matrix/")
 matrix_list <- list.files(matrix_path, pattern = "FedMeeting_\\d{8}.csv", full.names = TRUE)
@@ -28,86 +28,131 @@ combined_data <- combined_data |>
 
 ### EDA
 
-fff_2024 <- combined_data |> 
-  filter(year(Date) >= 2024) 
+year_start <- 2024
+target_ranges <- c("(525-550)", 
+                   "(500-525)", 
+                   "(475-500)", 
+                   "(450-475)", 
+                   "(425-450)", 
+                   "(400-425)", 
+                   "(375-400)",
+                   "(350-375)",
+                   "(325-350)",
+                   "(300-325)",
+                   "(275-300)",
+                   "(250-275)")
+half_line <- geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey")
 
-fff_2024 |> 
+fff <- combined_data |> 
+  filter(year(Date) >= year_start) 
+
+fff |> 
   filter(Meeting > Sys.Date()) |> 
   ggplot(aes(x=Date)) + 
-  geom_line(aes(y = `(525-550)`, colour = "(525-550)")) + 
-  geom_line(aes(y = `(500-525)`, colour = "(500-525)")) + 
-  geom_line(aes(y = `(475-500)`, colour = "(475-500)")) + 
   facet_wrap(~Meeting) + 
-  geom_hline(yintercept = 0.5, linetype = "dashed", colour = "grey")
+  half_line + 
+  lapply(target_ranges, function(Range) {
+    range_sym <- rlang::sym(Range)  
+    geom_line(aes(y = !!range_sym, colour = Range))
+  })
 
 ### Matrix
 
-
-matrix_table <- function(data, targetrange) {
-  columnList = c("Date", targetrange, "Meeting", "DaysDiff")
-  fff_target <- data |> 
-    select(all_of(columnList))
+# Function for generating a matrix for a target range
+matrix_table <- function(data, targetrange, n) {
+  if (length(targetrange) == 1) {
+    targetrange <- list(targetrange)
+  } else {
+    targetrange <- as.list(targetrange)
+  }
   
-  fff_matrix_3mo <- fff_target |> 
-    group_by(Date) |> 
-    filter(Meeting > Date) |> 
-    arrange(Date, Meeting) |> 
-    slice(1:3) |> 
-    summarise(Sentiment_3mon = sum(.data[[targetrange]] * as.numeric(DaysDiff))/sum(as.numeric(DaysDiff)))
+  newColumn <- rlang::sym(str_glue("Sentiment_",n,"mon"))
   
-  fff_matrix_8mo <- fff_target |> 
-    group_by(Date) |> 
-    filter(Meeting > Date) |> 
-    arrange(Date, Meeting) |> 
-    slice(1:8) |> 
-    summarise(Sentiment_8mon = sum(.data[[targetrange]] * as.numeric(DaysDiff))/sum(as.numeric(DaysDiff)))
+  results <- lapply(targetrange, function(tr) {
+    columnList <- c("Date", tr, "Meeting", "DaysDiff")
+    fff_matrix <- data |> 
+      select(all_of(columnList)) |> 
+      group_by(Date) |> 
+      filter(Meeting > Date) |> 
+      arrange(Date, Meeting) |> 
+      slice(1:n) |> 
+      summarise(!!sym(newColumn) := sum(.data[[tr]] * as.numeric(DaysDiff))/sum(as.numeric(DaysDiff)), .groups = 'drop') |> 
+      mutate(TargetRange = tr)
+    return(fff_matrix)
+  })
   
-  fff_matrix <- merge(fff_matrix_3mo, fff_matrix_8mo, by = "Date", all = T)
-  fff_matrix <- fff_matrix |> mutate(TargetRange = targetrange)
-  return(fff_matrix)
+  combined_results <- bind_rows(results)
+  return(combined_results)
 }
 
-matrix_list <- rbind(matrix_table(fff_2024, "(525-550)"), 
-                     matrix_table(fff_2024, "(500-525)"), 
-                     matrix_table(fff_2024, "(475-500)"))
+# Function for generating a single graph of sentiment for some number of month
 
-matrix_list |> ggplot(aes(x = Date)) + 
+matrix_graph_single <- function(data, n) {
+  newColumnName <- rlang::sym(str_glue("Sentiment_",n,"mon"))
+  data |> ggplot(aes(x = Date)) + 
+    geom_line(aes(y = !!newColumnName, colour = TargetRange)) + 
+    half_line + 
+    labs(title = str_glue(n,"-month Sentiment for Various FFF rates"), 
+         y = "Sentiment")
+}
+
+# main 
+
+sentiment_num = c(3,8)
+
+matrix_list <- merge(matrix_table(fff, target_ranges, 3),
+                     matrix_table(fff, target_ranges, 8))
+
+matrix_na_list <- matrix_list |> 
+  group_by(TargetRange) |> 
+  summarise(na_ratio=sum(is.na(Sentiment_8mon))/n()) |> 
+  filter(na_ratio>0.9) |> 
+  pull(TargetRange)
+
+matrix_list |> 
+  filter(!TargetRange %in% matrix_na_list) |> 
+  ggplot(aes(x = Date)) + 
   facet_wrap(~TargetRange) + 
-  geom_line(aes(y = Sentiment_3mon, colour = "Sentiment (3-month ST)")) + 
-  geom_line(aes(y = Sentiment_8mon, colour = "Sentiment (8-month LT)")) + 
-  geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey") + 
+  half_line + 
   labs(title = "Sentiment for Various FFF rates", 
-       y = "Sentiment")
+       y = "Sentiment", 
+       colour = "Months") + 
+  lapply(sentiment_num, function(x) {
+    sentiment_sym <- rlang::sym(str_glue("Sentiment_",x,"mon"))  
+    geom_line(aes(y = !!sentiment_sym, colour = str_glue("Sentiment (",x," months)")))
+  })
 
-matrix_list |> ggplot(aes(x = Date)) + 
-  geom_line(aes(y = Sentiment_3mon, colour = TargetRange)) + 
-  geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey") + 
-  labs(title = "Short Term (3 month) Sentiment for Various FFF rates", 
-       y = "Sentiment")
+matrix_graph_single(matrix_list, 3)
+matrix_graph_single(matrix_list, 8)
 
-matrix_list |> ggplot(aes(x = Date)) + 
-  geom_line(aes(y = Sentiment_8mon, colour = TargetRange)) + 
-  geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey") + 
-  labs(title = "Long Term (8 month) Sentiment for Various FFF rates", 
-       y = "Sentiment")
 
 ## this is a test of dominating target range with sentiment as weight
 
+mean_from_range <- function(input_string) {
+  numeric_part <- gsub("[^0-9-]", "", input_string)
+  numbers <- as.numeric(strsplit(numeric_part, "-")[[1]])
+  mean(numbers)
+}
+
+target_mean <- sapply(target_ranges, mean_from_range)
+
 matrix_list_dom <- matrix_list |> 
   group_by(Date) |> 
-  summarise(Sentiment_3mon_dom=max(Sentiment_3mon)*c(5.375,5.125,4.875)[which.max(Sentiment_3mon)], 
-            Sentiment_8mon_dom=max(Sentiment_8mon)*c(5.375,5.125,4.875)[which.max(Sentiment_8mon)])
+  summarise(Sentiment_3mon_dom=max(Sentiment_3mon)*target_mean[which.max(Sentiment_3mon)], 
+            Sentiment_8mon_dom=max(Sentiment_8mon)*target_mean[which.max(Sentiment_8mon)])
 
 matrix_list_dom |> ggplot(aes(x=Date)) + 
   geom_line(aes(y=Sentiment_3mon_dom, colour="Sentiment_3mon_dom")) + 
   geom_line(aes(y=Sentiment_8mon_dom, colour="Sentiment_8mon_dom"))
 
-matrix_list_dom |> ggplot(aes(x=Date, y=1-1/(Sentiment_3mon_dom/Sentiment_8mon_dom))) + 
+matrix_list_dom |> ggplot(aes(
+  x=Date, 
+  y=Sentiment_3mon_dom-Sentiment_8mon_dom)) + 
   geom_line()
 
 prices |> 
   merge(matrix_list_dom, by="Date") |> 
-  ggplot(aes(x=US.10y.yield, y=Sentiment_8mon_dom)) + 
+  ggplot(aes(x=Gold, y=Sentiment_3mon_dom-Sentiment_8mon_dom)) + 
   geom_smooth() + 
   geom_point(alpha=0.5) + 
   aes(colour = factor(month(Date)))
