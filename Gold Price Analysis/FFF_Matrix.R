@@ -66,8 +66,6 @@ matrix_table <- function(data, targetrange, n) {
     targetrange <- as.list(targetrange)
   }
   
-  newColumn <- rlang::sym(str_glue("Sentiment_",n,"mon"))
-  
   results <- lapply(targetrange, function(tr) {
     columnList <- c("Date", tr, "Meeting", "DaysDiff")
     fff_matrix <- data |> 
@@ -76,7 +74,7 @@ matrix_table <- function(data, targetrange, n) {
       filter(Meeting > Date) |> 
       arrange(Date, Meeting) |> 
       slice(1:n) |> 
-      summarise(!!sym(newColumn) := sum(.data[[tr]] * as.numeric(DaysDiff))/sum(as.numeric(DaysDiff)), .groups = 'drop') |> 
+      summarise(!!sentiment_sym(n) := sum(.data[[tr]] * as.numeric(DaysDiff))/sum(as.numeric(DaysDiff)), .groups = 'drop') |> 
       mutate(TargetRange = tr)
     return(fff_matrix)
   })
@@ -94,6 +92,12 @@ matrix_graph_single <- function(data, n) {
     half_line + 
     labs(title = str_glue(n,"-month Sentiment for Various FFF rates"), 
          y = "Sentiment")
+}
+
+# Function of the Sentiment symbol in the matrix table
+
+sentiment_sym <- function(x) {
+  return(rlang::sym(str_glue("Sentiment_",x,"mon")))
 }
 
 # main 
@@ -118,32 +122,36 @@ matrix_list |>
        y = "Sentiment", 
        colour = "Months") + 
   lapply(sentiment_num, function(x) {
-    sentiment_sym <- rlang::sym(str_glue("Sentiment_",x,"mon"))  
-    geom_line(aes(y = !!sentiment_sym, colour = str_glue("Sentiment (",x," months)")))
+    geom_line(aes(y = !!sentiment_sym(x), colour = str_glue("Sentiment (",x," months)")))
   })
 
-matrix_graph_single(matrix_list, 3)
-matrix_graph_single(matrix_list, 8)
-
+lapply(sentiment_num,function(x) {matrix_graph_single(matrix_list,x)})
 
 ## this is a test of dominating target range with sentiment as weight
 
 mean_from_range <- function(input_string) {
   numeric_part <- gsub("[^0-9-]", "", input_string)
   numbers <- as.numeric(strsplit(numeric_part, "-")[[1]])
-  mean(numbers)
+  mean(numbers)/100
 }
 
 target_mean <- sapply(target_ranges, mean_from_range)
+target_mean <- sort(target_mean)
 
 matrix_list_dom <- matrix_list |> 
   group_by(Date) |> 
-  summarise(Sentiment_3mon_dom=max(Sentiment_3mon)*target_mean[which.max(Sentiment_3mon)], 
-            Sentiment_8mon_dom=max(Sentiment_8mon)*target_mean[which.max(Sentiment_8mon)])
+  summarise(Sentiment_3mon_dom=max(Sentiment_3mon, na.rm=T)*target_mean[which.max(Sentiment_3mon)], 
+            Sentiment_8mon_dom=max(Sentiment_8mon, na.rm=T)*target_mean[which.max(Sentiment_8mon)], 
+            Domina_fff_3mon=target_mean[which.max(Sentiment_3mon)],
+            Domina_fff_8mon=target_mean[which.max(Sentiment_8mon)])
 
 matrix_list_dom |> ggplot(aes(x=Date)) + 
   geom_line(aes(y=Sentiment_3mon_dom, colour="Sentiment_3mon_dom")) + 
   geom_line(aes(y=Sentiment_8mon_dom, colour="Sentiment_8mon_dom"))
+
+matrix_list_dom |> ggplot(aes(x=Date)) + 
+  geom_line(aes(y=Domina_fff_3mon, colour="Domina_fff_3mon")) + 
+  geom_line(aes(y=Domina_fff_8mon, colour="Domina_fff_8mon"))
 
 matrix_list_dom |> ggplot(aes(
   x=Date, 
