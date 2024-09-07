@@ -18,39 +18,31 @@ cngen <- cngen |>
 
 #####
 
-# Experiment on reproducing data of Jan and Feb
+# Reproducing data of Jan and Feb by days of month
 
 genlunar <- cngen |>
   filter(
   month(Date) == 1 | month(Date) == 2,
   is.na(`Retail Sales (CNY 100M)`) == T) |>
-  select(Date, `Retail Sales (CNY 100M)`, `Retail Sales Tot Per Annu (CNY 100M)`)
+  select(Date, `Retail Sales (CNY 100M)`, `Retail Sales Tot Per Annu (CNY 100M)`) |> 
+  fill(`Retail Sales Tot Per Annu (CNY 100M)`,.direction = "up") |> 
+  mutate(`Retail Sales (CNY 100M)` = as.numeric(difftime(
+    paste(year(Date),month(Date)+1,"01",sep="-"),
+    paste(year(Date),month(Date),"01",sep="-"),units="days")) / as.numeric(difftime(
+      paste(year(Date),"03","01",sep="-"),
+      paste(year(Date),"01","01",sep="-"),units="days")) * `Retail Sales Tot Per Annu (CNY 100M)`) |> 
+  select(!`Retail Sales Tot Per Annu (CNY 100M)`)
 
-# Solution 1: simply divide the retail sales by days of month
-days_in_first_two_months <- function(year) {
-  ifelse(leap_year(year), return(31+29),return(31+28))
-}
-
-genlunar <- genlunar |> 
-  fill(`Retail Sales Tot Per Annu (CNY 100M)`, 
-       .direction = "up") |> 
-  mutate(`Retail Sales (CNY 100M)` = 
-            `Retail Sales Tot Per Annu (CNY 100M)` * days_in_month(Date) / days_in_first_two_months(year(Date))) |> 
-  select(Date, `Retail Sales (CNY 100M)`)
-
-for(i in 1:nrow(genlunar)) {
-  cngen$`Retail Sales (CNY 100M)`[cngen$Date == genlunar$Date[i]] <- genlunar$`Retail Sales (CNY 100M)`[i]
-}
-
-# Solution 2: consider the days of Lunar New Year Holiday as weight
-# lunar <- read.csv(here("Lunar Year Start Date.csv"))
 
 #####
 
 # CPI-adjusted Retail Sales for all years and after 2015
 
 cnadj <- cngen |> 
-  select(Date,`Retail Sales (CNY 100M)`) |> 
+  left_join(genlunar,by=join_by(Date),keep=T) |> 
+  mutate(`Retail Sales (CNY 100M)` = coalesce(`Retail Sales (CNY 100M).x`,`Retail Sales (CNY 100M).y`)) |> 
+  rename(Date=Date.x) |> 
+  select(Date, `Retail Sales (CNY 100M)`) |> 
   left_join(cncpi, by = "Date")
 
 cncpi |> ggplot(aes(x = Date, 
