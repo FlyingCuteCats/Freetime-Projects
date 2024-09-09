@@ -45,6 +45,10 @@ cnadj <- cngen |>
   select(Date, `Retail Sales (CNY 100M)`) |> 
   left_join(cncpi, by = "Date")
 
+cnadj <- cnadj |> 
+  filter(year(Date)>=1987) |> 
+  mutate(`Adjusted Retail Sales (CNY 100M)` = `Retail Sales (CNY 100M)` / CPIIndex)
+
 cncpi |> ggplot(aes(x = Date, 
                     y = CPIIndex)) + 
   geom_line() + 
@@ -52,10 +56,9 @@ cncpi |> ggplot(aes(x = Date,
   ylab("CPI Index")
 
 cnadj |> ggplot(aes(x = Date, 
-                    y = `Retail Sales (CNY 100M)` / CPIIndex)) + 
+                    y = `Adjusted Retail Sales (CNY 100M)`)) + 
   geom_line() + 
-  geom_smooth() + 
-  ylab("Adjusted Retail Sales (CNY 100M)")
+  geom_smooth() 
 
 cnadj |> filter(year(Date) >= 2015) |> 
   ggplot(aes(x = Date, 
@@ -66,10 +69,9 @@ cnadj |> filter(year(Date) >= 2015) |>
 
 cnadj |> filter(year(Date) >= 2015) |> 
   ggplot(aes(x = Date, 
-                    y = `Retail Sales (CNY 100M)` / CPIIndex)) + 
+                    y = `Adjusted Retail Sales (CNY 100M)`)) + 
   geom_line() + 
-  geom_smooth() + 
-  ylab("Adjusted Retail Sales (CNY 100M)")
+  geom_smooth() 
 
 # decomposition
 
@@ -86,9 +88,6 @@ adj <- cnadj |>
   select(Month, Retail_adj)
 
 library(feasts)
-adj |> 
-  fill_gaps() |> 
-  gg_season(Retail_adj)
 
 dcmp <- adj %>% model(stl = STL(Retail_adj))
 components(dcmp) |> head
@@ -96,12 +95,13 @@ components(dcmp) |> head
 
 # lag plots
 
-series <- sapply(cngen[,2:45], function (x) x[!is.na(x)])
+#series <- sapply(cngen[,2:45], function (x) x[!is.na(x)])
+series <- cnadj[,c(1,4)]
 
-lag.plot(series[[1]], 
-         set.lags = c(10,20,30,40,50,60), 
+lag.plot(series[[2]], 
+         set.lags = c(12,12*2,12*3,12*4,12*5,12*6), 
          main = "All Data")
-acf(series[[1]], 
+acf(series[[2]], 
     lag.max = 500, 
     main = "All Data")
 
