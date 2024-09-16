@@ -108,7 +108,7 @@ acf(series[[2]],
 cngen2015on <- cngen |> filter(year(Date) >= 2015)
 series2015on <- sapply(cngen2015on[,2:45], function (x) x[!is.na(x)])
 lag.plot(series2015on[[1]], 
-         set.lags = c(10,20,30,40,50,60), 
+         set.lags = c(12,12*2,12*3,12*4,12*5,12*6), 
          main = "Data since 2015")
 acf(series2015on[[1]], 
     lag.max = 150, 
@@ -117,7 +117,7 @@ acf(series2015on[[1]],
 cngenbefore2015 <- cngen |> filter(year(Date) < 2015)
 seriesbefore2015 <- sapply(cngenbefore2015[,2:45], function (x) x[!is.na(x)])
 lag.plot(seriesbefore2015[[1]], 
-         set.lags = c(10,20,30,40,50,60), 
+         set.lags = c(12,12*2,12*3,12*4,12*5,12*6), 
          main = "Data before 2015")
 acf(seriesbefore2015[[1]], 
     lag.max = 150, 
@@ -126,7 +126,7 @@ acf(seriesbefore2015[[1]],
 cngen2005_2015 <- cngen |> filter(year(Date) <= 2015, year(Date) >= 2005)
 series2005_2015 <- sapply(cngen2005_2015[,2:45], function (x) x[!is.na(x)])
 lag.plot(series2005_2015[[1]], 
-         set.lags = c(10,20,30,40,50,60), 
+         set.lags = c(12,12*2,12*3,12*4,12*5,12*6), 
          main = "Data btw 2005 and 2015")
 acf(series2005_2015[[1]], 
     lag.max = 150, 
