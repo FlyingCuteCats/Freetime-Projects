@@ -110,7 +110,7 @@ matrix_list <- merge(matrix_table(fff, target_ranges, 3),
 matrix_na_list <- matrix_list |> 
   group_by(TargetRange) |> 
   summarise(na_ratio=sum(is.na(Sentiment_8mon))/n()) |> 
-  filter(na_ratio>0.9) |> 
+  filter(na_ratio>0.95) |> 
   pull(TargetRange)
 
 matrix_list |> 
