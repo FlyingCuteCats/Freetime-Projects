@@ -2,15 +2,16 @@ library(tidyverse)
 library(lubridate)
 library(here)
 library(zoo)
+library(rlang)
 
 prices <- read.csv(here("PriceSeries.csv"))
 prices$Date <- as.Date(prices$Date)
 
 # Randomness Test
 
-series <- sapply(prices[,2:7], function (x) x[!is.na(x)])
+series <- sapply(prices[,2:ncol(prices)], function (x) x[!is.na(x)])
 
-for (i in 1:6) {
+for (i in 1:length(series)) {
   lag.plot(series[[i]], set.lags = c(1, 10, 25, 50, 100, 200), 
            main = paste("Lag Plot of", names(series[i])), 
            layout = c(2,3))
@@ -32,18 +33,22 @@ ggplot(prices, aes(Date, US.10y.yield - CN.10y.yield, colour = factor(year(Date)
 
 # Gold and US-CN yield
 
-plot_gold_price_yield <- function(data, year, by_month = FALSE) {  
+plot_gold_price_spread <- function(data, year, yield_year, by_month = FALSE) {  
   # first pick out the year  
   filtered_data <- data |> 
     filter(year(Date) == year)
   
+  # Create the column names
+  us_column <- paste("US.", yield_year, "y.yield", sep = "")
+  cn_column <- paste("CN.", yield_year, "y.yield", sep = "")
+  
   # then generate the plot  
   p <- filtered_data |> 
-    ggplot(aes(x = US.10y.yield - CN.10y.yield, y = Gold)) +
+    ggplot(aes(x = !!sym(us_column) - !!sym(cn_column), y = Gold)) +
     geom_smooth() +
     geom_point(alpha = 0.5) +
-    ggtitle(paste("Gold Price in Year", year, "(US-CN spread)")) +
-    labs(x = "US-CN 10y spread")
+    ggtitle(paste("Gold Price in Year", year, "(US-CN", yield_year, "year spread)")) +
+    labs(paste(x = "US-CN ", yield_year, "y spread", sep=""))
   
   # decide which variant to plot   
   if (!by_month) {
@@ -59,18 +64,21 @@ plot_gold_price_yield <- function(data, year, by_month = FALSE) {
 
 # gold price and US yield
 
-plot_gold_price_us <- function(data, year, by_month = FALSE) {  
+plot_gold_price_us <- function(data, year, yield_year, by_month = FALSE) {  
   # first pick out the year  
   filtered_data <- data |> 
     filter(year(Date) == year)
   
+  # variable name of the yield
+  column_name <- paste("US.", yield_year, "y.yield", sep = "")
+  
   # then generate the plot  
   p <- filtered_data |> 
-    ggplot(aes(x = US.10y.yield, y = Gold)) +
+    ggplot(aes(x = !!sym(column_name), y = Gold)) +
     geom_smooth() +
     geom_point(alpha = 0.5) +
     ggtitle(paste("Gold Price in Year", year, "(US yield)")) +
-    labs(x = "US yield")
+    labs(paste(x = "US ", yield_year, "y yield", sep=""))
   
   # decide which variant to plot   
   if (!by_month) {
@@ -84,19 +92,19 @@ plot_gold_price_us <- function(data, year, by_month = FALSE) {
   print(p)
 }
 
-plot_gold_price_yield(prices, 2024, by_month = F)
-plot_gold_price_yield(prices, 2024, by_month = T)
-plot_gold_price_yield(prices, 2023, by_month = F)
-plot_gold_price_yield(prices, 2023, by_month = T)
-plot_gold_price_yield(prices, 2022, by_month = F)
-plot_gold_price_yield(prices, 2022, by_month = T)
+plot_gold_price_spread(prices, 2024, 10, by_month = F)
+plot_gold_price_spread(prices, 2024, 10, by_month = T)
+plot_gold_price_spread(prices, 2023, 10, by_month = F)
+plot_gold_price_spread(prices, 2023, 10, by_month = T)
+plot_gold_price_spread(prices, 2022, 10, by_month = F)
+plot_gold_price_spread(prices, 2022, 10, by_month = T)
 
-plot_gold_price_us(prices, 2024, by_month = F)
-plot_gold_price_us(prices, 2024, by_month = T)
-plot_gold_price_us(prices, 2023, by_month = F)
-plot_gold_price_us(prices, 2023, by_month = T)
-plot_gold_price_us(prices, 2022, by_month = F)
-plot_gold_price_us(prices, 2022, by_month = T)
+plot_gold_price_us(prices, 2024, 10, by_month = F)
+plot_gold_price_us(prices, 2024, 10, by_month = T)
+plot_gold_price_us(prices, 2023, 10, by_month = F)
+plot_gold_price_us(prices, 2023, 10, by_month = T)
+plot_gold_price_us(prices, 2022, 10, by_month = F)
+plot_gold_price_us(prices, 2022, 10, by_month = T)
 
 # decomposition of gold price
 
