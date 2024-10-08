@@ -77,7 +77,7 @@ plot_gold_price_us <- function(data, year, yield_year, by_month = FALSE) {
     ggplot(aes(x = !!sym(column_name), y = Gold)) +
     geom_smooth() +
     geom_point(alpha = 0.5) +
-    ggtitle(paste("Gold Price in Year", year, "(US yield)")) +
+    ggtitle(paste("Gold Price in Year", year, "(US", yield_year, "yield)")) +
     labs(paste(x = "US ", yield_year, "y yield", sep=""))
   
   # decide which variant to plot   
