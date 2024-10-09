@@ -1,0 +1,8 @@
+US Retail Sales: 
+https://www.census.gov/retail/marts/www/marts_current.xlsx
+https://www.census.gov/retail/mrts/www/mrtssales92-present.xlsx
+https://www.census.gov/retail/marts/www/adv44X72.txt
+
+US CPI:
+https://www.bls.gov/data/#prices “All Urban Consumers (Current Series)”
+https://www.bls.gov/cpi/tables/supplemental-files/historical-cpi-u-202408.pdf
