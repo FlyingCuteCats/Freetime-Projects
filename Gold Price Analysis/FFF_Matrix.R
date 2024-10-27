@@ -107,6 +107,15 @@ sentiment_num = c(3,8)
 matrix_list <- merge(matrix_table(fff, target_ranges, 3),
                      matrix_table(fff, target_ranges, 8))
 
+matrix_list <- matrix_list |> 
+  group_by(TargetRange) |> 
+  arrange(TargetRange, Date) |> 
+  mutate(d_3mon = if_else(row_number() == 1, 0, Sentiment_3mon-lag(Sentiment_3mon)), 
+         d_8mon = if_else(row_number() == 1, 0, Sentiment_8mon-lag(Sentiment_8mon))) |> 
+  mutate(dd_3mon = if_else(row_number() == 1 | row_number()== 2, 0, d_3mon-lag(d_3mon)), 
+         dd_8mon = if_else(row_number() == 1 | row_number()== 2, 0, d_8mon-lag(d_8mon))) |> 
+  ungroup()
+
 matrix_na_list <- matrix_list |> 
   group_by(TargetRange) |> 
   summarise(na_ratio=sum(is.na(Sentiment_8mon))/n()) |> 
