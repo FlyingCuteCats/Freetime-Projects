@@ -28,7 +28,7 @@ combined_data <- combined_data |>
 
 ### EDA
 
-year_start <- 2024
+date_start <- "2024-06-01"
 target_ranges <- c("(525-550)", 
                    "(500-525)", 
                    "(475-500)", 
@@ -44,7 +44,7 @@ target_ranges <- c("(525-550)",
 half_line <- geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey")
 
 fff <- combined_data |> 
-  filter(year(Date) >= year_start) 
+  filter(date(Date) >= date_start) 
 
 fff |> 
   filter(Meeting > Sys.Date()) |> 

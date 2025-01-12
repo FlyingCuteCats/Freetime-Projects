@@ -92,6 +92,8 @@ plot_gold_price_us <- function(data, year, yield_year, by_month = FALSE) {
   print(p)
 }
 
+plot_gold_price_spread(prices, 2025, 10, by_month = F)
+plot_gold_price_spread(prices, 2025, 10, by_month = T)
 plot_gold_price_spread(prices, 2024, 10, by_month = F)
 plot_gold_price_spread(prices, 2024, 10, by_month = T)
 plot_gold_price_spread(prices, 2023, 10, by_month = F)
@@ -99,6 +101,8 @@ plot_gold_price_spread(prices, 2023, 10, by_month = T)
 plot_gold_price_spread(prices, 2022, 10, by_month = F)
 plot_gold_price_spread(prices, 2022, 10, by_month = T)
 
+plot_gold_price_us(prices, 2025, 10, by_month = F)
+plot_gold_price_us(prices, 2025, 10, by_month = T)
 plot_gold_price_us(prices, 2024, 10, by_month = F)
 plot_gold_price_us(prices, 2024, 10, by_month = T)
 plot_gold_price_us(prices, 2023, 10, by_month = F)
