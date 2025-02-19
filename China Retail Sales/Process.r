@@ -80,7 +80,7 @@ cnadj |> filter(year(Date) >= 2015) |>
 # library(fabletools)
 # library(fable)
 adj <- cnadj |> 
-  mutate(Retail_adj = `Retail Sales (CNY 100M)` / CPIIndex) |> 
+  mutate(Retail_adj = `Retail Sales (CNY 100M)` / CPIIndex) * 100 |> 
   select(Date, Retail_adj) |> 
   mutate(Month = yearmonth(Date)) |> 
   select(-Date) |> 
